@@ -1,4 +1,5 @@
 import yfinance as yf
+import scipy.stats as sp
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -49,11 +50,7 @@ def beta(b, m):
 
     b_Beta = round(b_m_Cov / m_Var, 3)
 
-    return {
-        "cov": b_m_Cov,
-        "var": m_Var,
-        "beta": b_Beta,
-    }
+    return b_Beta
 
 def capm_return(r_f, r_m, beta, mer):
 
@@ -76,12 +73,10 @@ VXC.TO: All world except Canada | MER = 0.25%
 RZV: Small cap 600 | MER = 0.35%
 """
 
-beta_parameters = beta(b = "SPHB", m = "VT")
+beta = beta(b = "SPHB", m = "VTI")
 
-beta = beta_parameters["beta"]
+print("Beta:", beta)
 
-print(beta)
+capm_return = capm_return(r_f=1/100, r_m=7/100, beta=beta, mer=0.25/100)
 
-capm_return = capm_return(r_f = 1/100, r_m=7/100, beta=beta, mer=0.25/100)
-
-print(capm_return)
+print("Expected return from CAPM:", capm_return * 100, "%")
