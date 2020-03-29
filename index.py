@@ -3,7 +3,7 @@ import scipy.stats as sp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def beta(b, m):
+def calculate_beta(b, m):
 
     # (Get string values)
     b_str = b
@@ -52,7 +52,7 @@ def beta(b, m):
 
     return b_Beta
 
-def capm_return(r_f, r_m, beta, mer):
+def calculate_capm_return(r_f, r_m, beta, mer):
 
     # Calculate the CAPM returns from instrument "b" beta
 
@@ -73,10 +73,19 @@ VXC.TO: All world except Canada | MER = 0.25%
 RZV: Small cap 600 | MER = 0.35%
 """
 
-beta = beta(b = "SPHB", m = "VTI")
+funds = [
+    ["VOO", "S&P 500", "VTI", 0.03/100],
+    ["SPHB", "S&P 500 'high beta'", "VTI", 0.25/100],
+    ["RZV", "Small cap 600", "VTI", 0.35/100],
+    ["VTI", "All US", "VT", 0.03/100],
+    ["VWO", "Emerging markets", "VT", 0.1/100],
+]
 
-print("Beta:", beta)
+for fund in funds:
+    fund.append(calculate_beta(b = fund[0], m = fund[2]))
 
-capm_return = capm_return(r_f=1/100, r_m=7/100, beta=beta, mer=0.25/100)
+for fund in funds:
+    fund.append(calculate_capm_return(r_f = 1/100, r_m = 7/100, beta = fund[4], mer = fund[3]))
 
-print("Expected return from CAPM:", capm_return * 100, "%")
+for fund in funds:
+    print(fund)
