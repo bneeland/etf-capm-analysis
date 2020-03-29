@@ -1,5 +1,6 @@
 import yfinance as yf
 import pandas as pd
+import matplotlib.pyplot as plt
 
 def beta(b, m):
 
@@ -7,12 +8,12 @@ def beta(b, m):
     b_str = b
     m_str = m
 
-    # Define funds
+    # Define instruments
 
     b = yf.Ticker(b_str)
     m = yf.Ticker(m_str)
 
-    # Get fund price data
+    # Get instrument price data
 
     start = "2013-01-01"
     end = "2019-12-31"
@@ -34,6 +35,12 @@ def beta(b, m):
     df[b_str + "_Return"] = df[b_str + "_Close"].pct_change()
     df[m_str + "_Return"] = df[m_str + "_Close"].pct_change()
 
+    # Plot the returns
+
+    plt.scatter(x=df[m_str + "_Return"], y=df[b_str + "_Return"])
+
+    plt.show()
+
     # Beta calculations
 
     b_m_Cov = df[b_str + "_Return"].cov(df[m_str + "_Return"])
@@ -50,7 +57,7 @@ def beta(b, m):
 
 def capm_return(r_f, r_m, beta, mer):
 
-    # Calculate the CAPM returns from fund "b" beta
+    # Calculate the CAPM returns from instrument "b" beta
 
     r_b = r_f + beta * (r_m - r_f) - mer
 
@@ -67,7 +74,6 @@ VOO: S&P 500 in USD | MER = 0.03%
 SPHB: S&P 500 "high beta" | MER = 0.25%
 VXC.TO: All world except Canada | MER = 0.25%
 RZV: Small cap 600 | MER = 0.35%
-IRX: Short-term US Treasury bills
 """
 
 beta_parameters = beta(b = "SPHB", m = "VT")
