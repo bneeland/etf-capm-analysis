@@ -1,31 +1,39 @@
 import yfinance as yf
-import scipy.stats as sp
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def calculate_beta(b, m):
+def get_instrument(i, start, end):
 
     # (Get string values)
-    b_str = b
-    m_str = m
+
+    i_str = i
 
     # Define instruments
 
-    b = yf.Ticker(b_str)
-    m = yf.Ticker(m_str)
+    i = yf.Ticker(i_str)
 
     # Get instrument price data
 
-    start = "2013-01-01"
-    end = "2019-12-31"
-
-    b_df = b.history(start=start, end=end, auto_adjust=True).add_prefix(b_str + "_")
-    m_df = m.history(start=start, end=end, auto_adjust=True).add_prefix(m_str + "_")
+    i_df = i.history(start=start, end=end, auto_adjust=True).add_prefix(i_str + "_")
 
     # Only keep the adjusted closing prices
 
-    b_df = b_df[[b_str + "_Close"]]
-    m_df = m_df[[m_str + "_Close"]]
+    i_df = i_df[[i_str + "_Close"]]
+
+    return i_df
+
+def calculate_beta(b, m):
+
+    # Get string values
+
+    b_str = b
+    m_str = m
+
+    start = "2012-01-01"
+    end = "2021-05-31"
+
+    b_df = get_instrument(b, start, end)
+    m_df = get_instrument(m, start, end)
 
     # Combine closing values into one dataframe
 
@@ -39,6 +47,8 @@ def calculate_beta(b, m):
     # Plot the returns
 
     plt.scatter(x=df[m_str + "_Return"], y=df[b_str + "_Return"])
+
+    plt.title(b_str)
 
     plt.show()
 
@@ -62,30 +72,72 @@ def calculate_capm_return(r_f, r_m, beta, mer):
 
     return r_b
 
-"""
-Other funds for reference:
-VT: All world | MER = 0.08%
-VTI: All US | MER = 0.03%
-ZSP.TO: S&P 500 in CAD | MER = 0.08%
-VOO: S&P 500 in USD | MER = 0.03%
-SPHB: S&P 500 "high beta" | MER = 0.25%
-VXC.TO: All world except Canada | MER = 0.25%
-RZV: Small cap 600 | MER = 0.35%
-"""
+def get_historical_returns(b):# Get string values
 
-funds = [
-    ["VOO", "S&P 500", "VTI", 0.03/100],
-    ["SPHB", "S&P 500 'high beta'", "VTI", 0.25/100],
-    ["RZV", "Small cap 600", "VTI", 0.35/100],
-    ["VTI", "All US", "VT", 0.03/100],
-    ["VWO", "Emerging markets", "VT", 0.1/100],
-]
+    # Get string value
 
-for fund in funds:
-    fund.append(calculate_beta(b = fund[0], m = fund[2]))
+    b_str = b
 
-for fund in funds:
-    fund.append(calculate_capm_return(r_f = 1/100, r_m = 7/100, beta = fund[4], mer = fund[3]))
+    # Get historical returns
 
-for fund in funds:
-    print(fund)
+    start = "2012-01-01"
+    end = "2021-05-31"
+
+    b_df = get_instrument(b, start, end)
+
+    # Calculate mean historical returns
+
+    b_df[b_str + "_Return"] = b_df[b_str + "_Close"].pct_change()
+
+    # Print returns
+
+    print(b_df)
+
+    # Calculate mean return
+
+    r_b = b_df[b_str + "_Return"].mean()
+
+    r_b = (1 + r_b) ** 365 - 1
+
+    r_b = round(r_b, 3)
+
+    print(r_b)
+
+    # Plot returns
+
+    plt.plot(b_df[b_str + "_Return"])
+
+    plt.show()
+
+    return r_b
+
+# get_historical_returns("SPHB")
+
+def get_capm_returns():
+
+    # [Symbol, Name, Comparison (market), MER]
+    funds = [
+        ["VOO", "S&P 500", "VT", 0.0003],
+        ["SPHB", "S&P 500 'high beta'", "VT", 0.0025],
+        ["RZV", "Small cap 600", "VT", 0.0035],
+        ["VTI", "All US", "VT", 0.0003],
+        ["VWO", "Emerging markets", "VT", 0.001],
+        ["VTHR", "Russel 3000", "VT", 0.001],
+        ["VINIX", "Vanguard Insitutional Index", "VT", 0.0003],
+        ["VEXAX", "Vanguard Extended Market Index", "VT", 0.0006],
+        ["TCIEX", "TIAA-CREF International Equity", "VT", 0.0005],
+    ]
+
+    for fund in funds:
+        fund.append(calculate_beta(b = fund[0], m = fund[2]))
+
+    r_f = 1/100
+    r_m = 7/100
+
+    for fund in funds:
+        fund.append(calculate_capm_return(r_f, r_m, beta = fund[4], mer = fund[3]))
+
+    for fund in funds:
+        print(fund)
+
+get_capm_returns()
